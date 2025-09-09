@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import userController from './user.controller';
 import auth from '../../../middlewares/auth.middleware';
-import upload from '../../../libraries/multer';
+import storage from '../../../libraries/multer';
+import multer from 'multer';
+
+const upload = multer({
+  storage
+});
 
 const router = Router();
 
