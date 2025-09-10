@@ -25,8 +25,8 @@ export class ProductRepository {
         );
 
       const products = await ProductModal.find()
-        .populate("likes.user", 'name email profilePic')
-        .populate('comments.userId', 'name email profilePic')
+        .populate("likes.user", "name email profilePic")
+        .populate("comments.userId", "name email profilePic")
         .sort({ createdAt: -1 }) // newest first
         .limit(limit)
         .skip(skip);
@@ -42,6 +42,7 @@ export class ProductRepository {
   }
 
   async insertProduct(input: AddProductInput) {
+    console.log(input.userId)
     input.userId = toObjectId(input.userId);
 
     const newProduct = new ProductModal(input);
@@ -61,37 +62,88 @@ export class ProductRepository {
     const productId = toObjectId(prodId);
     const userId = toObjectId(user);
 
-    const product = await ProductModal.findOne({
-      _id: productId,
-      "likes.user": userId,
-    });
+    try {
+      const product = await ProductModal.findOne({
+        _id: productId,
+        "likes.user": userId,
+      });
 
-    let updateQuery;
-    if (product) {
-      // Already liked → remove (dislike)
-      updateQuery = { $pull: { likes: { user: userId } } };
-    } else {
-      // Not liked yet → add (like)
-      updateQuery = { $push: { likes: { user: userId } } };
+      let updateQuery;
+      if (product) {
+        // Already liked → remove (dislike)
+        updateQuery = { $pull: { likes: { user: userId } } };
+      } else {
+        // Not liked yet → add (like)
+        updateQuery = { $push: { likes: { user: userId } } };
+      }
+
+      const updated = await ProductModal.updateOne(
+        { _id: productId },
+        updateQuery
+      );
+
+      return updated.modifiedCount;
+    } catch (err) {
+      throw new BaseError(
+        "Like Product",
+        HttpStatusCode.INTERNAL_SERVER,
+        "Could not like product"
+      );
     }
-
-    const updated = await ProductModal.updateOne(
-      { _id: productId },
-      updateQuery
-    );
-
-    return updated.modifiedCount;
   }
 
   async addComment(comment: string, user: string, productId: string) {
     const userId = toObjectId(user);
     const id = toObjectId(productId);
 
-    const updateProduct = await ProductModal.updateOne(
-      { _id: id },
-      { $push: { comments: { userId, content: comment } } }
-    );
+    try {
+      const updateProduct = await ProductModal.updateOne(
+        { _id: id },
+        { $push: { comments: { userId, content: comment } } }
+      );
 
-    return updateProduct.modifiedCount;
+      return updateProduct.modifiedCount;
+    } catch (err) {
+      throw new BaseError(
+        "Comment Product",
+        HttpStatusCode.INTERNAL_SERVER,
+        "Could not comment product"
+      );
+    }
+  }
+
+  async getMyProducts(user: string) {
+    try {
+      const userId = toObjectId(user);
+      const products = await ProductModal.find({ userId })
+        .populate("likes.user", "name email profilePic")
+        .populate("comments.userId", "name email profilePic")
+        .sort({ createdAt: -1 });
+
+      return products;
+    } catch (err) {
+      throw new BaseError(
+        "Get My Product",
+        HttpStatusCode.INTERNAL_SERVER,
+        "Could not get my products"
+      );
+    }
+  }
+
+  async getSingleProduct(productId: string) {
+    try {
+      const id = toObjectId(productId);
+      const product = await ProductModal.findOne({ _id: id })
+        .populate("likes.user", "name email profilePic")
+        .populate("comments.userId", "name email profilePic");
+
+      return product;
+    } catch (err) {
+      throw new BaseError(
+        "Get Single Product",
+        HttpStatusCode.INTERNAL_SERVER,
+        "Could not get single product"
+      );
+    }
   }
 }

@@ -3,18 +3,16 @@ import { HttpStatusCode } from "../../../types";
 import { ProductRepository } from "../data-access/product.repository";
 import { AddProductInput } from "./dto";
 
-
 export class ProductService {
   private prodRepo = new ProductRepository();
 
   async getProducts(limit: number, skip: number) {
-    const products = await this.prodRepo.getProducts(limit, skip)
+    const products = await this.prodRepo.getProducts(limit, skip);
 
     return products;
   }
 
   async createProduct(productInput: AddProductInput) {
-
     const product = await this.prodRepo.insertProduct(productInput);
 
     if (!product) {
@@ -35,9 +33,23 @@ export class ProductService {
   }
 
   async addComment(comment: string, userId: string, productId: string) {
-    const isCommentAdded = await this.prodRepo.addComment(comment, userId, productId);
+    const isCommentAdded = await this.prodRepo.addComment(
+      comment,
+      userId,
+      productId
+    );
 
     return isCommentAdded;
   }
 
+  async getMyProducts(userId: string) {
+    const products = await this.prodRepo.getMyProducts(userId);
+    return products;
+  }
+
+  async getSingleProduct(productId: string) {
+    const product = await this.prodRepo.getSingleProduct(productId);
+
+    return product;
+  }
 }

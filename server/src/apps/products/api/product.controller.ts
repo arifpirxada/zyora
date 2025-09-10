@@ -57,6 +57,17 @@ const createProduct = async (
         productData.images.push(file.path);
       });
 
+      const userId = req.userId;
+
+      if (!userId || userId === undefined) {
+        res.status(HttpStatusCode.BAD_REQUEST).json({
+          success: false,
+          message: "No user found",
+        });
+      }
+
+      productData.userId = userId;
+
       const product = await productService.createProduct(productData);
       res.status(HttpStatusCode.OK).json({
         success: true,
@@ -113,8 +124,8 @@ const addComment = async (req: Request, res: Response, next: NextFunction) => {
         success: false,
         message: "Invalid post data",
       });
+      return;
     }
-
     const isCommentAdded: number = await productService.addComment(
       comment,
       userId!,
@@ -130,11 +141,64 @@ const addComment = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(HttpStatusCode.OK).json({
       success: true,
-      message: 'Added comment to product'
+      message: "Added comment to product",
     });
   } catch (err) {
     next(err);
   }
 };
 
-export default { createProduct, getProducts, likeProduct, addComment };
+const getMyProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId || userId === undefined) {
+      res.status(HttpStatusCode.BAD_REQUEST).json({
+        success: false,
+        message: "No user found",
+      });
+    }
+    const products = await productService.getMyProducts(userId!);
+
+    res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: "Products fetched successfully",
+      data: products,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getSingleProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const productId = req.params.id;
+
+    const product = await productService.getSingleProduct(productId!);
+
+    res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: "Product fetched successfully",
+      product,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default {
+  createProduct,
+  getProducts,
+  likeProduct,
+  addComment,
+  getMyProducts,
+  getSingleProduct,
+};

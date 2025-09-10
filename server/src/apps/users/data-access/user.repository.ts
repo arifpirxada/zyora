@@ -36,7 +36,7 @@ export class UserRepository {
 
   async findUserById(_id: string) {
     const user = await UserModel.findOne({ _id }).select(
-      '-password -createdAt -updatedAt -__v -_id'
+      '-password -createdAt -updatedAt -__v'
     );
 
     return user;
