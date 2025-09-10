@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import productController from './product.controller';
+import auth from '../../../middlewares/auth.middleware';
 
 const router = Router();
 
-// router.get('/me', auth, userController.getUser);
+router.get('/', productController.getProducts);
 
 router.post('/', productController.createProduct);
 
-// router.post('/login', userController.loginUser);
+router.put('/:id/like', auth, productController.likeProduct);
+router.post('/:id/comment', auth, productController.addComment);
 
-// router.post('/logout', userController.logoutUser)
+
 
 export default router;
