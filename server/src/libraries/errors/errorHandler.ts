@@ -8,7 +8,7 @@ export const handleError = (
   res: Response,
   _next: NextFunction
 ): void => {
-  console.log(err)
+
   // Catch Mongoose CastError (invalid ObjectId)
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
     res.status(HttpStatusCode.BAD_REQUEST).json({
